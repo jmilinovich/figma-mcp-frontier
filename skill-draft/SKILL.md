@@ -27,8 +27,9 @@ allowed-tools:
 
 > **DRAFT — verified 2026-06-17 against the remote server (`mcp.figma.com`) via Anthropic's
 > Claude Code plugin (`mcp__plugin_figma_figma__*`, 19 tools).** The rules below are distilled
-> from the figma-mcp-frontier research synthesis + live tool schemas. Numeric ceilings (op
-> count, payload size) are working conventions, **not** measured limits — the benchmark
+> from the figma-mcp-frontier research synthesis + live tool schemas. The **"Proven at the canvas"**
+> rules below are now **measured** against the live server (see `results/`); numeric ceilings (op
+> count, payload size) remain working conventions, **not** measured limits — the benchmark
 > (`harness/`, `docs/experiment-matrix.md`) will tighten them. Treat tagged confidence as such.
 
 This is the **official remote** server, not the local Dev Mode server (`127.0.0.1:3845`) and not a
@@ -36,6 +37,22 @@ third-party server (Framelink/GLips `figma-context-mcp`, `cursor-talk-to-figma-m
 runs **arbitrary JavaScript against the Figma Plugin API** — it is **atomic** (a thrown error rolls
 back the whole script, zero partial changes → safe to retry) but **non-deterministic** (the model
 writes fresh code each time). This protocol exists to tame the non-determinism, not the atomicity.
+
+---
+
+## Proven at the canvas (live 2026-06-17) — the write-time levers that decide read quality
+
+These are no longer conventions — they were measured against the remote server (see `results/`). They are the highest-leverage moves, because **the quality and cost of the code you later read back is bought at write time.**
+
+1. **Buy token fidelity: variables-with-code-syntax FIRST, then bind everything.** Build a variable collection, set explicit `scopes` AND a WEB **code-syntax** on each variable (`v.setVariableCodeSyntax("WEB", "var(--color-surface)")`), then bind every fill/stroke/cornerRadius/padding/gap/text-color to them. `get_design_context` then emits clean `var(--token,fallback)` refs (e.g. `bg-[var(--color-surface,white)]`). **Skip the binding and it hardcodes hex** (`bg-[#17171c]`) — that, not a tool defect, is the entire "the MCP hardcodes tokens" complaint. (Proven: rung-1 unbound vs rung-3 bound → `results/read-fidelity-tokens.md`.)
+2. **Use component INSTANCES, not clones, for anything repeated.** `get_design_context` componentizes true instances (one component def + short usages — DRY and cheap) but emits **N full copies of the markup for clones**. Measured ~3–4× output reduction on a 12-item grid; the gap grows with count. Make it a component, instantiate it. (Proven: rung-2 instance vs rung-4 clones → `results/token-cost.md`.)
+3. **`combineAsVariants` pays off on read.** A proper component set makes `get_design_context` return a **single parametric, typed** component (`variant?: "Primary"|"Secondary"|"Ghost"` + per-variant conditional classes), not snippets. Name variant children `"Prop=Value"` so the property is derived. (Proven: rung 2.)
+4. **Clean designs read cheap — the 25k cap is a *density* problem.** ~197 chars/node measured; a 51-node screen ≈ 2.5k tokens, no downgrade. The famous 162K/351k-token blowups are imported/vector/raster-dense designs, not semantic complexity. So: build clean, scope tightly, and reach for `get_metadata` first (it stays ~3–4× lighter and the gap widens with size). (Proven: rung 4 → `results/token-cost.md`.)
+5. **Don't expect framework retargeting.** `clientFrameworks`/`clientLanguages` are **logging-only** — output is always React+Tailwind; converting to Vue/SwiftUI/Compose is the agent's job downstream. (Proven → `results/ground-truth-probes.md`.)
+6. **Code Connect needs an Org/Enterprise Dev seat.** Both `get_code_connect_map` and `add_code_connect_map` are gated there — unavailable on Pro/Full. Don't build a pipeline that assumes it; the local component-composition `get_design_context` gives is the fallback. (Proven this build.)
+7. **Multi-mode: you can write it, you can't fully read it.** Adding a Dark mode works on Pro, but `get_variable_defs` returns only the node's **active** mode's resolved values — never the multi-mode definition. For full theming, read twice under explicit modes or use the REST API. (Proven → `results/read-fidelity-tokens.md`.)
+
+> **Reliability signal so far:** 4/4 ladder rungs (Button, variant set, token-bound Card, 51-node screen) built **clean on the first call, zero retries** when following the protocol below. Atomicity + `figma-use` discipline is what makes that hold.
 
 ---
 
@@ -153,7 +170,8 @@ clean. So on a bad validation:
 - [ ] Calls **serialized** — never parallel `use_figma`
 - [ ] ≤ ~8–10 ops/call; `code` ≤ 50 000 chars; return **IDs not payloads** (≤ ~20 KB output)
 - [ ] Colors 0–1; `loadFontAsync` before text; **Google Fonts only**
-- [ ] No external image URLs — `upload_assets` / `generate_figma_design` imageHash; SVG via `createNodeFromSvg`
+- [ ] Token fidelity bought at write time: variables w/ WEB code-syntax, then **bind everything**; repeated structures are **instances, not clones**
+- [ ] No external image URLs — `upload_assets` / `generate_figma_design` (capture→rebuild→delete); SVG via `createNodeFromSvg`
 - [ ] Each call validated via `get_screenshot` (URL+curl) and/or `get_metadata` on the returned ID
 - [ ] On failure: diagnose → fix script → re-run that section atomically → split if still failing
 
@@ -167,18 +185,24 @@ clean. So on a bad validation:
 | Nodes scattered at page root | Reparented across calls (step 3) | Create + `appendChild` in the **same** call; re-fetch parent by ID |
 | Fills come out black | Colors passed as 0–255 / hex | Use 0–1 floats |
 | Text empty / font error | Forgot `loadFontAsync`, or non-Google / mis-cased font | `await loadFontAsync`; Google Fonts; `"Semi Bold"` not `"SemiBold"` |
-| Image never appears | External URL inside `use_figma` | `upload_assets` or `generate_figma_design` imageHash; SVG → `createNodeFromSvg` |
+| Image never appears | External URL inside `use_figma` | `upload_assets` or `generate_figma_design` (capture→rebuild→delete); SVG → `createNodeFromSvg` |
+| Generated code hardcodes hex/px | Values not bound to variables (or variables lack WEB code-syntax) | Bind fills/radius/spacing/text to code-synced variables — fidelity is bought at write time |
+| Read-back code is N copies of one block | Built with clones, not instances | Make it a component, instantiate it — `get_design_context` componentizes instances |
 | Call truncated / failed on big return | Output over ~20 KB | Return IDs/counts only, not node trees |
 | Library build randomly corrupts | Parallel `use_figma` calls | Serialize — one in-flight write at a time |
 | Validation looks fine but structure off | `get_metadata` first-design-only pathology (**OPEN**) | Cross-check with `get_screenshot`; see experiment matrix |
 
 ---
 
-## To be tightened by the benchmark (`harness/`, `docs/experiment-matrix.md`)
-- True single-call ceiling: ops, node count, and the real output-size limit (the ~10 ops / ~20 KB
-  figures here are conventions, not measurements).
-- Whether `get_metadata`'s "instruction-only/first-design-only" pathology is live on this build.
-- Exact `use_figma` non-determinism rate over a full library build (write success-rate).
-- Whether the screenshot-vs-metadata validation split is necessary or `get_metadata` alone suffices.
+## Resolved this build (2026-06-17) — promoted from convention to measured
+- ✅ Token fidelity, instances-vs-clones, `combineAsVariants` read shape, multi-mode read limit, Code Connect seat gate, framework-param logging-only — see the "Proven at the canvas" section + `results/`.
+- ✅ `get_design_context` shows **no downgrade/cap at 51 clean nodes** (~2.5k tokens); the 25k cap extrapolates to ~509 clean nodes — confirming the blowups are a density/cruft problem.
+- ✅ `get_metadata` returned full structure for a 51-node, multi-card tree (no "first-design-only" pathology observed on a single multi-child design this build).
+
+## Still to be tightened by the benchmark (`harness/`, `docs/experiment-matrix.md`)
+- True single-call ceiling: ops, node count, and the real output-size limit (the ~10 ops / ~20 KB figures remain conventions; rung 4 didn't stress them).
+- The definitive cap-failure repro + whether `forceCode` overrides the silent downgrade — needs a **dense imported** design (e.g. the shadcn kit), not clean synthetic nodes.
+- Whether the `get_metadata` "first-design-only" pathology appears on a genuinely **multi-design page** (untested; single multi-child design was fine).
+- Exact `use_figma` non-determinism rate over a large library build (4/4 clean so far is a small sample).
 
 *Point-in-time against a fast-moving target. Re-verify the dated claims before relying on them.*

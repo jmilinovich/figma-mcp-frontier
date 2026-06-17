@@ -37,7 +37,7 @@ Atomicity + the `figma-use` skill make the write path reliable in practice. → 
 2. **shadcn corpus read-fidelity** — duplicate the public shadcn Figma kit into the account, run `get_design_context` vs the real shadcn code as answer-key, score with the rubric.
 3. ⛔ **WALL — Code Connect path** — both `add_code_connect_map` and `get_code_connect_map` are gated to an **Org/Enterprise Dev seat**; unavailable on Pro/Full. The "Code Connect upgrades output to a real import" test needs an Org/Enterprise seat. Side-finding: `get_design_context` on an instance emits component composition even *without* Code Connect. → `results/ground-truth-probes.md`
 4. ✅ **DONE — Multi-mode `get_variable_defs`** — follows the node's active mode, returns one mode's resolved values only; multi-mode is invisible (write multi-mode works on Pro; read doesn't surface it). → `results/read-fidelity-tokens.md`
-5. Tighten `skill-draft/SKILL.md` with what rungs 1–3 proved (variables-with-code-syntax first; bind everything).
+5. ✅ **DONE — tightened `skill-draft/SKILL.md`** with the proven write-time levers (token fidelity via code-synced variables + bind-everything; instances-not-clones for DRY/cheap reads; `combineAsVariants` read shape; multi-mode read limit; Code Connect seat gate; framework-param logging-only). Added a "Proven at the canvas" section + failure-table rows; fixed residual `imageHash` references.
 
 ## Caveats / honesty
 - All numbers are point-in-time against the 2026-06-17 remote build; payload sizes are char-count proxies (±10%), not MCP-client usage-log exact.
