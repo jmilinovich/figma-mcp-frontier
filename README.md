@@ -17,7 +17,7 @@ The official Figma MCP is three launches wearing one name, and almost every publ
 | # | Artifact | Status |
 |---|----------|--------|
 | 1 | **Corrected capability map** — all 19 tools, real (often undocumented) parameter behavior, limits, failure modes | ✅ v1 → [`docs/capability-map.md`](docs/capability-map.md) |
-| 2 | **Reproducible benchmark harness + live results** — read fidelity, per-tool token cost, write success-rate | 🟢 first results landed → [`results/`](results/) |
+| 2 | **Reproducible benchmark harness + live results** — read fidelity, per-tool token cost, write success-rate | 🟢 **8 of 12 experiments resolved** + 4 write rungs → [`results/`](results/) |
 | 3 | **Frontier demo** — one thing the docs call aspirational (codebase → tokenized design system, or capture→relink loop) | ⏳ next |
 | 4 | **Reliability skill** — make the non-deterministic write pipeline repeatable (atomicity + skill-gating + per-call validation) | 🚧 draft → [`skill-draft/SKILL.md`](skill-draft/SKILL.md) |
 

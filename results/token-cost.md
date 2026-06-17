@@ -49,3 +49,14 @@ The head-to-head nobody has published. All three read tools called on the **same
 - **Extrapolated cap threshold: ~509 nodes** of *clean* content (~197 chars/node → ~100k chars ≈ 25k tokens).
 - **This settles the ~350× gap.** A clean semantic Card is ~280 tokens; a clean 51-node screen ~2.5k. The cited "~162K-token card" / 351,378-token worst case cannot be clean semantic markup — they are **imported/vector/raster-dense designs**: absolute-positioned cruft, vector path data, deeply-nested redundant wrappers, inline SVG. Per-node cost on imported art runs 10–50× a clean node, so the cap is hit at *far* fewer than 509 nodes for imported designs. **The blowups are a density/cruft problem, not a semantic-complexity problem** — build clean and the read path is cheap. (Definitive cap-failure repro + `forceCode`-override test best done on the dense shadcn import, not synthetic clean nodes.)
 - **DRY lever (measured):** the 12 cloned cards emitted as 12 repeated inline `<div>`s (not componentized). Had they been instances of one component, output would be ~1 component def + 12 short usages — roughly a 3–4× reduction at this size, growing with count. Building with **components/instances** (not clones) both shrinks `get_design_context` output and makes it DRY. → reliability-skill input.
+
+## E12 — base64 vs URL screenshot cost (live 2026-06-17)
+
+Measured on the smallest fixture (77×37 Button):
+
+| Screenshot mode | Payload | ~Tokens | Scales with image size? |
+|---|---|---:|---|
+| URL (default) | ~481 chars (JSON + curl) | ~120 | **No — flat / O(1)** |
+| base64 (`enableBase64Response:true`) | URL text **+** a 1,082-byte PNG → ~1,442 base64 chars | ~360+ | **Yes — O(pixel area)** |
+
+- Even for a trivial 77×37 node, base64 is **~3× the URL cost**; the gap explodes for real-sized screenshots (a 1024px-max render is orders of magnitude larger). URL mode is flat ~120 tokens regardless of image dimensions — which is exactly why it's the default and why `get_design_context`'s default inline screenshot (suppressible via `excludeScreenshot`) is the hidden tax at scale. Only force base64 when the agent genuinely can't fetch URLs.

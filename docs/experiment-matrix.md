@@ -45,7 +45,7 @@ Status of each experiment after the first live run. Detail + raw payloads in `re
 | E09 instance override values | ✅ RESOLVED (text) | `get_design_context` returns the override ("Submit now"), not the base — refutes the "returns base values" worry. Variant-swap overrides untested. | `results/ground-truth-probes.md` |
 | E10 atomicity | ✅ RESOLVED | Both thrown-JS and API-level failures leave **zero** nodes — atomic, safe to retry. | `results/ground-truth-probes.md` |
 | E11 `disableCodeConnect` | ⛔ BLOCKED | Moot on this account — Code Connect is seat-gated off entirely. | `results/ground-truth-probes.md` |
-| E12 `excludeScreenshot` cost | 🟡 PARTIAL | Confirmed it suppresses the inline image (text identical with/without); precise screenshot-token delta not yet isolated. | `results/token-cost.md` |
+| E12 `excludeScreenshot` cost | ✅ RESOLVED | URL screenshot is flat ~120 tok (O(1)); base64 is ~360 tok even at 77×37 and scales with pixel area (~3× here). URL is the cheap default; `excludeScreenshot` removes `get_design_context`'s inline-image tax. | `results/token-cost.md` |
 
 **Bonus findings — proven but not originally enumerated here** (→ `results/read-fidelity-tokens.md`): token fidelity is bought at write time (bound code-synced variables → `var(--token,fallback)`; unbound → hardcoded hex); `get_design_context` componentizes true **instances** but emits N copies for **clones**; a component **set** reads back as one parametric typed component; **multi-mode** `get_variable_defs` returns only the node's active mode.
 
