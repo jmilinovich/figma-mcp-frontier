@@ -49,3 +49,31 @@ Each probe: question · method (tool + exact params) · result · verdict · con
 - **Result:** it returned a **local `Button` component definition** (with `variant?: "Primary"` prop) **and** an `export default function Button1()` that renders `<Button className=… />` — i.e. it factored the instance into a reusable component + a usage site, rather than flattening to a `<div>`.
 - **Verdict:** even **without** Code Connect, `get_design_context` is instance-aware and emits component composition. What Code Connect *would* add is replacing that locally-synthesized `Button` with an import of your **real** codebase component — the missing, seat-gated upgrade. Token binding stayed consistent (bound `rounded-[var(--radius-lg,12px)]`; unbound `bg-[#17171c]`).
 - **Confidence:** High (live behavior).
+
+---
+
+## E03 — Does `setReactionsAsync` execute under `use_figma`? → **YES. RESOLVED.**
+
+- **Method:** `node.setReactionsAsync([{ trigger:{type:"ON_CLICK"}, actions:[{type:"NODE", destinationId:"3:2", navigation:"NAVIGATE", transition:null}] }])` on the Button `1:2`, then read back `node.reactions` in the same call.
+- **Result:** set succeeded; `reactions` read back the full reaction (the API normalized it to **both** the legacy singular `action` and the array `actions`, and filled defaults `resetVideoPosition:false`, `resetScrollPosition:true`).
+- **Verdict (high confidence):** prototyping **reactions are fully scriptable** through `use_figma` — settable and reads back via `node.reactions` (no dedicated read tool needed). The synthesis hypothesis that reactions might be set-but-unreadable is **refuted**.
+
+## E04 — Are Noise / Texture / Glass effect params settable via `use_figma`? → **YES (all). RESOLVED + typings drift.**
+
+Applied each effect to its own rectangle (per-effect try/catch), read back `node.effects[0].type`:
+
+| Effect | Settable | Notes |
+|---|---|---|
+| `DROP_SHADOW` (control) | ✅ | validates the harness |
+| `TEXTURE` | ✅ | `{visible, noiseSize, radius, clipToShape}` |
+| `GLASS` | ✅ | `{visible, lightIntensity, lightAngle, refraction, depth, dispersion, radius}` |
+| `NOISE` | ✅ *after* dropping `blendMode` | see drift below |
+
+- **Verdict (high confidence):** the **newer effects (Noise/Texture/Glass) are fully scriptable** — a real, underused creative-frontier capability of `use_figma` (procedural texture/glass/noise on any node).
+- **⚠️ Typings-vs-runtime drift:** the bundled `plugin-api-standalone.d.ts` `NoiseEffectBase` lists a `blendMode` field, but the **live server rejects it**: `in set_effects: ... Unrecognized key(s) in object: 'blendMode'`. Omit `blendMode` and NOISE applies cleanly. Build NOISE from `{type, noiseType, color, visible, noiseSize, density}` only.
+
+## E09 — Are instance OVERRIDE values returned by `get_design_context`? → **YES (text). RESOLVED — refutes the worry.**
+
+- **Method:** overrode the text on Button instance `8:2` ("Button" → "Submit now"), then `get_design_context(8:2)`.
+- **Result:** the returned code shows **"Submit now"** (the override), with the override node id preserved (`data-node-id="I8:2;4:3"`).
+- **Verdict (high confidence):** for **text overrides**, `get_design_context` returns the **override** value, not the base — **refuting** the research worry that it returns pre-override base values. (Property/variant-swap overrides are a separate, untested case.)

@@ -36,13 +36,13 @@ Status of each experiment after the first live run. Detail + raw payloads in `re
 |---|---|---|---|
 | E01 `forceCode` | 🟡 PARTIAL | No-op on small nodes (byte-identical output). The size-downgrade-override case is untested — needs a node past the threshold. | `results/ground-truth-probes.md` |
 | E02 single-call ceiling | 🟡 PARTIAL | 51-node screen built clean in 2 calls, 0 errors; `get_design_context` hit no cap at 51 nodes. True op/node/output/time ceilings still unmeasured. | `results/write-success.md`, `results/token-cost.md` |
-| E03 `setReactionsAsync` | ⬜ OPEN | Not yet run. | — |
-| E04 effect params (Noise/Texture/Glass) | ⬜ OPEN | Not yet run. | — |
+| E03 `setReactionsAsync` | ✅ RESOLVED | Executes + persists; reactions read back via `node.reactions`. Prototyping is scriptable. | `results/ground-truth-probes.md` |
+| E04 effect params (Noise/Texture/Glass) | ✅ RESOLVED | All settable (Texture/Glass clean; NOISE needs `blendMode` dropped — a `.d.ts`-vs-runtime drift). Newer effects are scriptable. | `results/ground-truth-probes.md` |
 | E05 Feb-2026 Code Connect bugs | ⛔ BLOCKED | Code Connect (read **and** write) is gated to an Org/Enterprise Dev seat — untestable on Pro/Full. | `results/ground-truth-probes.md` |
 | E06 `get_metadata` first-design-only | 🟡 PARTIAL | Returned full structure for a 51-node multi-child design (no pathology). A genuinely multi-**design** page is still untested. | `results/token-cost.md` |
 | E07 per-tool token cost | 🟢 DONE (rung 1) | `get_metadata` ~98 · `get_screenshot`(URL) ~120 · `get_design_context` ~368 tok + a default inline screenshot. Scales to ~2.5k tok at 51 nodes. (N≥3 medians still to add.) | `results/token-cost.md` |
 | E08 `clientFrameworks`/`clientLanguages` | ✅ RESOLVED | **Logging-only** — output is always React+Tailwind; a SwiftUI request returned byte-identical React. | `results/ground-truth-probes.md` |
-| E09 instance override values | ⬜ OPEN | Instance created, but no property overridden-then-read yet. | — |
+| E09 instance override values | ✅ RESOLVED (text) | `get_design_context` returns the override ("Submit now"), not the base — refutes the "returns base values" worry. Variant-swap overrides untested. | `results/ground-truth-probes.md` |
 | E10 atomicity | ⬜ OPEN | All writes succeeded; no forced-failure stress test yet. | — |
 | E11 `disableCodeConnect` | ⛔ BLOCKED | Moot on this account — Code Connect is seat-gated off entirely. | `results/ground-truth-probes.md` |
 | E12 `excludeScreenshot` cost | 🟡 PARTIAL | Confirmed it suppresses the inline image (text identical with/without); precise screenshot-token delta not yet isolated. | `results/token-cost.md` |
