@@ -34,3 +34,18 @@ The head-to-head nobody has published. All three read tools called on the **same
 - Rungs 2–4 (variant matrix → tokenized Card → full screen) to chart how each tool scales with complexity and find where `get_design_context` approaches/exceeds the 25,000-token per-tool cap.
 - `get_screenshot` base64 vs URL size delta on a real-sized node (rung 4).
 - The documented 351,378-token worst case — reproduce on a large page to characterize the failure mode + whether raising `MAX_MCP_OUTPUT_TOKENS` recovers it or just relocates the blowup.
+
+## Scaling curve & the 25k-cap reality (rung 4 — live 2026-06-17)
+
+`get_design_context` (code-only, `excludeScreenshot=true`) across the controlled ladder:
+
+| Fixture | Nodes | Code chars | ~Tokens | chars/node |
+|---|---:|---:|---:|---:|
+| Button | 2 | ~600 | ~150 | ~300 |
+| Card (token-bound) | 3 | ~1,110 | ~280 | ~370 |
+| **Dashboard screen (12 stat cards)** | **51** | **10,026** | **~2,507** | **~197** |
+
+- **No downgrade, no cap hit at 51 nodes.** The screen returned full code at ~2.7k tokens (with boilerplate). The silent metadata-downgrade threshold is therefore well above ~2.7k tokens — much nearer the 25k cap.
+- **Extrapolated cap threshold: ~509 nodes** of *clean* content (~197 chars/node → ~100k chars ≈ 25k tokens).
+- **This settles the ~350× gap.** A clean semantic Card is ~280 tokens; a clean 51-node screen ~2.5k. The cited "~162K-token card" / 351,378-token worst case cannot be clean semantic markup — they are **imported/vector/raster-dense designs**: absolute-positioned cruft, vector path data, deeply-nested redundant wrappers, inline SVG. Per-node cost on imported art runs 10–50× a clean node, so the cap is hit at *far* fewer than 509 nodes for imported designs. **The blowups are a density/cruft problem, not a semantic-complexity problem** — build clean and the read path is cheap. (Definitive cap-failure repro + `forceCode`-override test best done on the dense shadcn import, not synthetic clean nodes.)
+- **DRY lever (measured):** the 12 cloned cards emitted as 12 repeated inline `<div>`s (not componentized). Had they been instances of one component, output would be ~1 component def + 12 short usages — roughly a 3–4× reduction at this size, growing with count. Building with **components/instances** (not clones) both shrinks `get_design_context` output and makes it DRY. → reliability-skill input.

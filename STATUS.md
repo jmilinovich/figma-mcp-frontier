@@ -33,7 +33,7 @@ Atomicity + the `figma-use` skill make the write path reliable in practice. → 
 - `docs/_qa-report.md` — an adversarial accuracy gate caught + fixed 4 over-claims in the authored docs
 
 ## Pick up here (ranked)
-1. **Rung 4 — reproduce the token-cap blowup** on a dense/imported design; characterize the real 25k-cap threshold and settle `forceCode` at scale (E01 definitive). Tests the ~350× gap directly.
+1. 🟡 **PARTIAL — Rung 4 scaling** — built a 51-node dashboard; `get_design_context` = ~2.5k tokens, **no downgrade/cap hit**; cap extrapolates to ~509 clean nodes; clones aren't deduped (instances would be). Settles the ~350× gap (blowups = density/cruft, not semantic complexity). STILL OPEN: the actual cap-failure repro + `forceCode`-override (E01) — needs a *dense imported* design (do it on the shadcn kit, #2). → `results/token-cost.md`
 2. **shadcn corpus read-fidelity** — duplicate the public shadcn Figma kit into the account, run `get_design_context` vs the real shadcn code as answer-key, score with the rubric.
 3. ⛔ **WALL — Code Connect path** — both `add_code_connect_map` and `get_code_connect_map` are gated to an **Org/Enterprise Dev seat**; unavailable on Pro/Full. The "Code Connect upgrades output to a real import" test needs an Org/Enterprise seat. Side-finding: `get_design_context` on an instance emits component composition even *without* Code Connect. → `results/ground-truth-probes.md`
 4. ✅ **DONE — Multi-mode `get_variable_defs`** — follows the node's active mode, returns one mode's resolved values only; multi-mode is invisible (write multi-mode works on Pro; read doesn't surface it). → `results/read-fidelity-tokens.md`
