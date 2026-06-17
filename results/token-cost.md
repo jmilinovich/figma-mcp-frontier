@@ -60,3 +60,18 @@ Measured on the smallest fixture (77×37 Button):
 | base64 (`enableBase64Response:true`) | URL text **+** a 1,082-byte PNG → ~1,442 base64 chars | ~360+ | **Yes — O(pixel area)** |
 
 - Even for a trivial 77×37 node, base64 is **~3× the URL cost**; the gap explodes for real-sized screenshots (a 1024px-max render is orders of magnitude larger). URL mode is flat ~120 tokens regardless of image dimensions — which is exactly why it's the default and why `get_design_context`'s default inline screenshot (suppressible via `excludeScreenshot`) is the hidden tax at scale. Only force base64 when the agent genuinely can't fetch URLs.
+
+## E01 + E02 — the 25k cap REPRODUCED: downgrade, `forceCode` override, file-spill (live 2026-06-17)
+
+Built a deliberately dense single frame (**724 nodes**, 181 cloned 3-cell rows) and read it. Both behaviors fired:
+
+| Call | Result | Size | What it was |
+|---|---|---:|---|
+| `get_design_context(18:3)` **default** | exceeded cap → **spilled to file** | 68,302 chars | **METADATA XML** (725 `<frame>`/`<text>` tags, 0 `export default`) — the server **silently downgraded** code→metadata because the code would be too large |
+| `get_design_context(18:3, forceCode:true)` | exceeded cap → **spilled to file** | 138,084 chars | **React CODE** (`export default function CapTestDense()`, 726 `data-node-id`) — `forceCode` **overrode** the downgrade and forced code |
+
+**E01 RESOLVED — the demotion is real and `forceCode` is honored (remote).** When the generated code would be too large, default `get_design_context` returns **metadata XML instead of code** (the documented demotion — confirmed at ~724 nodes). **`forceCode:true` overrides it and forces full code** (68k metadata → 138k code). This **refutes the desktop-reported "forceCode is inert"** — on the remote server it works exactly as the schema says. (Note: even the *metadata* form overflowed the client cap here — the demotion alone doesn't guarantee the result fits.)
+
+**E02 RESOLVED — the cap is the CLIENT token cap, and oversized results spill to a file (not lost).** Both responses exceeded Claude Code's per-tool token cap (`MAX_MCP_OUTPUT_TOKENS`, ~25k default). Crucially, the current Claude Code harness **saves the oversized result to `…/tool-results/<tool>-<ts>.txt`** with a jq/subagent recovery path — it does **not** silently lose it. This **refines the research's "total call failure"**: on this harness the result is recoverable from disk (probe with `jq 'type,length'`, extract slices, or hand to a subagent). The practical mitigation stack: scope smaller / `get_metadata`-first / raise `MAX_MCP_OUTPUT_TOKENS` / read the spilled file with jq.
+
+**Threshold:** the demotion/cap engaged at ~724 dense nodes / ~68k+ char output — consistent with the ~509-clean-node extrapolation above (these rows are denser than bare nodes).

@@ -34,8 +34,8 @@ Status of each experiment after the first live run. Detail + raw payloads in `re
 
 | ID | Status | Finding (short) | Detail |
 |---|---|---|---|
-| E01 `forceCode` | 🟡 PARTIAL | No-op on small nodes. Downgrade-override still untriggered: even a dense real shadcn component (`command`, ~1.7k tok) didn't downgrade, and `get_design_context` **rejects page/canvas nodes** ("nothing selected") so page-scope can't be read in one call. Needs a single hundreds-of-node *frame*. | `results/read-fidelity-shadcn.md` |
-| E02 single-call ceiling | 🟡 PARTIAL | Real shadcn components are ~1–2k tok each; 51-node synthetic screen ~2.5k, no cap. Cap is a single-very-dense-*frame* phenomenon (none in the component-organized kit); `get_design_context` won't take a canvas node. Extrapolation (~509 clean nodes) stands. | `results/token-cost.md`, `results/read-fidelity-shadcn.md` |
+| E01 `forceCode` | ✅ RESOLVED | At 724 nodes, default `get_design_context` **silently downgrades code→metadata**; `forceCode:true` **overrides it and forces code** (68k metadata → 138k code). `forceCode` is **honored on remote** — refutes the desktop "inert" reports. | `results/token-cost.md` |
+| E02 single-call ceiling | ✅ RESOLVED | Cap = the **client** token cap (`MAX_MCP_OUTPUT_TOKENS` ~25k). Reproduced at 724 nodes (68k/138k chars). Current Claude Code **spills the oversized result to a file** (recoverable via jq/subagent), not "total failure". Real components ~1–2k tok; `get_design_context` rejects canvas nodes. | `results/token-cost.md` |
 | E03 `setReactionsAsync` | ✅ RESOLVED | Executes + persists; reactions read back via `node.reactions`. Prototyping is scriptable. | `results/ground-truth-probes.md` |
 | E04 effect params (Noise/Texture/Glass) | ✅ RESOLVED | All settable (Texture/Glass clean; NOISE needs `blendMode` dropped — a `.d.ts`-vs-runtime drift). Newer effects are scriptable. | `results/ground-truth-probes.md` |
 | E05 Feb-2026 Code Connect bugs | ⛔ BLOCKED | Code Connect (read **and** write) is gated to an Org/Enterprise Dev seat — untestable on Pro/Full. | `results/ground-truth-probes.md` |
