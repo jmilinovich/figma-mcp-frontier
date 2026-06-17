@@ -26,7 +26,8 @@ The official Figma MCP is three launches wearing one name, and almost every publ
 - **Component sets read back as one parametric typed component**, not snippets. (same file)
 - **`clientFrameworks`/`clientLanguages` are logging-only** — output is always React+Tailwind. [`results/ground-truth-probes.md`](results/ground-truth-probes.md)
 - **Per-tool token cost, measured:** `get_metadata` ~98 · `get_screenshot`(URL) ~120 · `get_design_context` ~368 tok (+inline screenshot). [`results/token-cost.md`](results/token-cost.md)
-- **3/4 write-ladder rungs built clean, zero retries** (Button, variant set, token-bound Card). [`results/write-success.md`](results/write-success.md)
+- **4/4 write-ladder rungs built clean, zero retries** (Button, variant set, token-bound Card, 51-node dashboard); reactions + Noise/Texture/Glass effects scriptable; atomicity confirmed. [`results/write-success.md`](results/write-success.md)
+- **Real shadcn/ui kit scored ~36% (5.3/15):** perfect structure, near-zero token/reuse/semantic fidelity — quantifies "scaffold, not implementation" on the most-used kit. [`results/read-fidelity-shadcn.md`](results/read-fidelity-shadcn.md)
 
 ## Verified grounding facts (the corrections)
 

@@ -3,7 +3,7 @@
 What got built while you slept, what's proven, and exactly where to pick up.
 
 ## TL;DR
-Public repo is live, the corrected capability map + benchmark harness are written, and the **live empirical core has resolved 8 of 12 planned experiments + all 4 write rungs + the Plugin-API frontier probes** — results nobody has published, including one finding that overturns the field's #1 complaint about the Figma MCP. Everything is committed and pushed. The remaining empirical work is blocked on one thing only you can do (see "⛳ The one thing that needs YOU" below).
+Public repo is live, the corrected capability map + benchmark harness are written, and the **live empirical core has resolved 8 of 12 planned experiments + all 4 write rungs + the Plugin-API frontier probes** — results nobody has published, including one finding that overturns the field's #1 complaint about the Figma MCP. Everything is committed and pushed. The shadcn read-fidelity benchmark is now done too (you provided the kit). Only two narrow things remain unrunnable here: the 25k-cap repro (needs a hundreds-of-node single dense frame) and Code Connect (Org/Enterprise seat).
 
 **Repo:** https://github.com/jmilinovich/figma-mcp-frontier
 **Live benchmark draft (throwaway, my Figma drafts):** `figma-mcp-frontier-bench` — file `PSSvW47Ry1XDSAVZWQcN7t`
@@ -35,8 +35,12 @@ Public repo is live, the corrected capability map + benchmark harness are writte
 **Partial:** E01 `forceCode` (no-op on small nodes; downgrade-override needs a node past the cap) · E02 single-call op ceiling (no cap at 51 nodes; true ceiling unmeasured).
 **Walled (seat):** E05 + E11 — the whole Code Connect cluster needs an **Org/Enterprise Dev seat** (read *and* write blocked on Pro/Full).
 
-## ⛳ The one thing that needs YOU (unblocks the rest)
-The remaining empirical work — **E01 definitive cap/`forceCode`**, **E02 op-ceiling**, and **#2 shadcn read-fidelity** — all need a **dense, imported design**. Easiest unblock: **duplicate a public shadcn/ui Figma community kit into your drafts and paste me the file URL.** With that I can: run the real 25k-token cap failure + `forceCode` override, and score official read-fidelity against the actual shadcn code as answer-key (the headline comparison). Code Connect (E05/E11) needs an Org/Enterprise Dev seat — out of scope on Pro unless you want to test on a work tenant.
+## ✅ shadcn read-fidelity benchmark — DONE (you provided the kit)
+Scored `get_design_context` on the canonical shadcn/ui Community kit (`LlVoZiB6eoanZEV3N1Ppf2`) vs the real shadcn source: **~36% (5.3/15)** — perfect structure/visual, near-zero tokens/reuse/semantics. Hardcoded hex (kit uses Figma **Styles**, not code-synced Variables); `<div>` not `<button>`, no `cva`; icons → raster `<img>` not lucide; the "Input" node is the composed newsletter example, not the atomic primitive. → `results/read-fidelity-shadcn.md`. This quantifies "scaffold, not implementation" on the most-used kit and pins exactly when the official server pays off (code-synced variables + Code Connect on an Org/Enterprise seat).
+
+## What genuinely still can't be done here (narrow)
+- **25k-cap repro + `forceCode`-override (E01/E02 definitive):** needs a single **hundreds-of-node dense frame**. The kit is component-organized (~1–2k tok each) and `get_design_context` **rejects page/canvas nodes**, so no available node is dense enough. Extrapolation (~509 clean nodes) stands; would need a real marketing-page-style mock.
+- **Code Connect (E05/E11):** Org/Enterprise Dev seat only — out of scope on Pro/Full.
 
 ## Lower-priority autonomous follow-ups (don't need you)
 - E07 N≥3 medians for tighter token numbers; a second-mode theming read; property/variant-swap (not just text) override behavior.

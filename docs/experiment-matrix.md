@@ -34,8 +34,8 @@ Status of each experiment after the first live run. Detail + raw payloads in `re
 
 | ID | Status | Finding (short) | Detail |
 |---|---|---|---|
-| E01 `forceCode` | 🟡 PARTIAL | No-op on small nodes (byte-identical output). The size-downgrade-override case is untested — needs a node past the threshold. | `results/ground-truth-probes.md` |
-| E02 single-call ceiling | 🟡 PARTIAL | 51-node screen built clean in 2 calls, 0 errors; `get_design_context` hit no cap at 51 nodes. True op/node/output/time ceilings still unmeasured. | `results/write-success.md`, `results/token-cost.md` |
+| E01 `forceCode` | 🟡 PARTIAL | No-op on small nodes. Downgrade-override still untriggered: even a dense real shadcn component (`command`, ~1.7k tok) didn't downgrade, and `get_design_context` **rejects page/canvas nodes** ("nothing selected") so page-scope can't be read in one call. Needs a single hundreds-of-node *frame*. | `results/read-fidelity-shadcn.md` |
+| E02 single-call ceiling | 🟡 PARTIAL | Real shadcn components are ~1–2k tok each; 51-node synthetic screen ~2.5k, no cap. Cap is a single-very-dense-*frame* phenomenon (none in the component-organized kit); `get_design_context` won't take a canvas node. Extrapolation (~509 clean nodes) stands. | `results/token-cost.md`, `results/read-fidelity-shadcn.md` |
 | E03 `setReactionsAsync` | ✅ RESOLVED | Executes + persists; reactions read back via `node.reactions`. Prototyping is scriptable. | `results/ground-truth-probes.md` |
 | E04 effect params (Noise/Texture/Glass) | ✅ RESOLVED | All settable (Texture/Glass clean; NOISE needs `blendMode` dropped — a `.d.ts`-vs-runtime drift). Newer effects are scriptable. | `results/ground-truth-probes.md` |
 | E05 Feb-2026 Code Connect bugs | ⛔ BLOCKED | Code Connect (read **and** write) is gated to an Org/Enterprise Dev seat — untestable on Pro/Full. | `results/ground-truth-probes.md` |
@@ -48,6 +48,8 @@ Status of each experiment after the first live run. Detail + raw payloads in `re
 | E12 `excludeScreenshot` cost | ✅ RESOLVED | URL screenshot is flat ~120 tok (O(1)); base64 is ~360 tok even at 77×37 and scales with pixel area (~3× here). URL is the cheap default; `excludeScreenshot` removes `get_design_context`'s inline-image tax. | `results/token-cost.md` |
 
 **Bonus findings — proven but not originally enumerated here** (→ `results/read-fidelity-tokens.md`): token fidelity is bought at write time (bound code-synced variables → `var(--token,fallback)`; unbound → hardcoded hex); `get_design_context` componentizes true **instances** but emits N copies for **clones**; a component **set** reads back as one parametric typed component; **multi-mode** `get_variable_defs` returns only the node's active mode.
+
+**Corpus benchmark — real shadcn/ui kit** (→ `results/read-fidelity-shadcn.md`): scored `get_design_context` on the canonical shadcn Community kit vs the real shadcn source. **~36% (5.3/15)** — perfect structural/visual fidelity, near-zero token/reuse/semantic fidelity (hardcoded hex because the kit uses Figma **Styles** not code-synced Variables; `<div>` not `<button>`, no `cva`; icons → raster `<img>` not lucide). Quantifies the "scaffold, not implementation" thesis on the most-used kit.
 
 ---
 
