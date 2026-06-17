@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# raw / scratch capture before it's curated into results/
+results/raw/
+*.tmp
+*.scratch
+
+# os
+.DS_Store
+
+# secrets — never commit tokens
+.env
+.env.*
+*.pat
