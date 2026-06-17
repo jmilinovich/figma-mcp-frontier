@@ -77,3 +77,15 @@ Applied each effect to its own rectangle (per-effect try/catch), read back `node
 - **Method:** overrode the text on Button instance `8:2` ("Button" → "Submit now"), then `get_design_context(8:2)`.
 - **Result:** the returned code shows **"Submit now"** (the override), with the override node id preserved (`data-node-id="I8:2;4:3"`).
 - **Verdict (high confidence):** for **text overrides**, `get_design_context` returns the **override** value, not the base — **refuting** the research worry that it returns pre-override base values. (Property/variant-swap overrides are a separate, untested case.)
+
+## E10 — Does a failed `use_figma` call truly leave zero changes? → **YES, both failure modes. RESOLVED.**
+
+- **Method:** two calls each created a named rectangle then failed — (a) an **uncaught thrown JS** `Error` after creation; (b) an **API-level validation error** (the known NOISE-with-`blendMode` rejection) after creation. Then a third call searched the page for the two node names.
+- **Result:** `atomicityTestNodesFound: 0` — **neither** failed call left a node. Both errored at the tool boundary; the document was unchanged.
+- **Verdict (high confidence):** `use_figma` is **atomic for both thrown-JS and Plugin-API errors** — a failed script makes zero changes, no orphans, retry-after-fix is safe. This is the reliability backstop the whole write protocol relies on, now empirically verified.
+
+## E06 — Remote `get_metadata` "first-design-only / instruction-only" pathology? → **NOT REPRODUCED. RESOLVED.**
+
+- **Method:** `get_metadata(page 0:1)` on a page holding **10 distinct top-level designs** (Button, Card, Button set, instance, a 51-node dashboard, 5 effect rects).
+- **Result:** returned the **complete** page — all 10 top-level designs, fully nested, including the dashboard's entire 51-node subtree. (It still appends the imperative "you MUST call get_design_context" string, but that's additive, not a truncation.)
+- **Verdict (high confidence):** the reported "first-design-only / instruction-only" pathology **does not reproduce on the remote server** at this scale. Likely desktop-specific or since-fixed. The remote `get_metadata` is a reliable full-structure probe. (Detail: the component set renders as `<frame>` of `<symbol>` variants; the overridden instance shows width 111 — the text override widened it.)
