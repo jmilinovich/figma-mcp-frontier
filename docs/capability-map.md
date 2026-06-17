@@ -42,6 +42,8 @@ This map distinguishes three things people constantly conflate:
 
 > **Note on the read/write count:** "10 remote-only" includes `add_code_connect_map`, `get_code_connect_suggestions`, and `send_code_connect_mappings` (Code Connect writes/suggestions), plus `get_libraries` and `whoami`. The desktop server's surface is read + code-gen only. `[behavior]`
 
+> **⚠️ Code Connect is seat-gated, independent of server (verified live 2026-06-17):** the *entire* Code Connect cluster — including the **read** tool `get_code_connect_map` — requires a **Dev seat on an Organization or Enterprise plan**. On a Pro/Full account, both `get_code_connect_map` and `add_code_connect_map` return *"You need a Dev seat on an Organization or Enterprise plan to use Code Connect."* So "shared with desktop" in the table means the tool exists on both servers, **not** that it's usable on your plan. `[behavior — live-verified]` See `results/ground-truth-probes.md`.
+
 ---
 
 ## The renames and the non-existent tools (read this first)
