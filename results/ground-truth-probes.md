@@ -84,6 +84,13 @@ Applied each effect to its own rectangle (per-effect try/catch), read back `node
 - **Result:** `atomicityTestNodesFound: 0` — **neither** failed call left a node. Both errored at the tool boundary; the document was unchanged.
 - **Verdict (high confidence):** `use_figma` is **atomic for both thrown-JS and Plugin-API errors** — a failed script makes zero changes, no orphans, retry-after-fix is safe. This is the reliability backstop the whole write protocol relies on, now empirically verified.
 
+## Asset export — `download_assets` (SVG + images), and the SVG-recovery path
+
+- **Explicit SVG export works.** `download_assets(node, defaultFormat:"svg")` on a vector node returned real **vector SVG markup** (300 bytes), not raster — paths preserved, layer names carried into `<g id>`/`<path id>`. Round-tripped a `createNodeFromSvg` check icon (`M20 6L9 17L4 12`) cleanly. (`createNodeFromSvg` also confirmed for SVG-*in*: made a FRAME→VECTOR.)
+- **`download_assets` is a two-for-one.** On the shadcn aspect-ratio photo (`13:1631`) it returned: (1) `export` — a rendered PNG of the node (690×388, 567,923 bytes, honors `defaultFormat`/`defaultScale` png/jpg/svg/pdf @ 0.01–4×); **and** (2) `rawImages` — the **original full-res source images** as fills (a **1600×2000** PNG (5.4MB) + a 400×500 PNG), distinct from and higher-res than the render. Capped at 20 with a `rawImagesTruncated` flag. All URLs verified as real image bytes via curl+`file`.
+- **Key insight (connects to the icon-fidelity gap):** `get_design_context` **flattens vector icons to raster `<img src=mcp-asset>` URLs** (loses the vectors — see `read-fidelity-shadcn.md`), but `download_assets` with `svg` **recovers the real vectors**. The SVG path exists — it's on the **asset tool, not the codegen tool**. Workaround for agents needing real SVG/icon output; and a concrete fix request for the team (have `get_design_context` emit SVG for vector nodes, or document this). `upload_assets` is the inverse (raster in; SVG-in is `createNodeFromSvg`).
+- Confidence: High (live, curl-verified end-to-end 2026-06-17).
+
 ## E06 — Remote `get_metadata` "first-design-only / instruction-only" pathology? → **NOT REPRODUCED. RESOLVED.**
 
 - **Method:** `get_metadata(page 0:1)` on a page holding **10 distinct top-level designs** (Button, Card, Button set, instance, a 51-node dashboard, 5 effect rects).
