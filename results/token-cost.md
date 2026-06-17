@@ -13,6 +13,15 @@ The head-to-head nobody has published. All three read tools called on the **same
 | `get_design_context` | node 1:2 (default) | 1,472 | ~368 | **+ 1 inline screenshot by default** → real additional image tokens on top of the 1,472 text chars |
 | `get_design_context` | node 1:2, `excludeScreenshot=true` | 1,472 | ~368 | text identical; inline image suppressed (saves the image tokens) |
 
+## Rung 3 — tokenized Card (frame + 2 text children, all values bound to variables)
+
+| Tool | Params | Payload chars | ~Tokens | Notes |
+|---|---|---:|---:|---|
+| `get_design_context` | node 3:2, `excludeScreenshot=true` | 1,810 | ~452 | token-bound output (`var(--token,fallback)` refs) — see `read-fidelity-tokens.md` |
+| `get_variable_defs` | node 3:2 | 199 | ~50 | the 6 bound tokens, keyed by WEB code-syntax, resolved values |
+
+**Scaling so far:** Button (`get_design_context`) ~368 tok → Card ~452 tok. The token-bound Card is only ~23% larger than the unbound Button despite more nodes — the `var(--token,fallback)` refs cost slightly more chars than bare hex, but the structure is still compact at this complexity. The steep growth shows up at screen scale (rung 4), where it approaches the 25k cap.
+
 ### What rung 1 already shows
 
 1. **`get_metadata` is the cheapest probe** (~98 tok) and ~3.7× lighter than `get_design_context` text — and that ratio will widen sharply with node complexity, because metadata grows ~linearly with node count while `get_design_context` emits full styled markup per node. This is the empirical basis for the **metadata-first loop**.

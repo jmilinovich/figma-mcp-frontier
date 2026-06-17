@@ -68,7 +68,7 @@ The four names above appear in the MCP server's own instruction blurb as aspirat
 
 ## Auth & seat gating (applies to every write tool)
 
-`whoami` `[schema]` returns the authenticated user plus a `plans[]` array; each plan carries `name`, `seat` (`Full` / `Dev` / `View`), `tier`, `seat_type`, and a `key` of the form `team::<id>` or `organization::<id>`. **That `key` is the `planKey` that `create_new_file` and `generate_diagram` require.** `[schema]`
+`whoami` `[behavior]` returns the authenticated user plus a `plans[]` array; each plan carries `name`, `seat` (`Full` / `Dev` / `View`), `tier`, `seat_type`, and a `key` of the form `team::<id>` or `organization::<id>`. (The live `whoami` schema takes **no params** and documents only that it identifies the authenticated user `[schema]`; the `plans[]` return shape is from the verified synthesis `[behavior]`, not the schema.) **That `key` is the `planKey` that `create_new_file` and `generate_diagram` require — both schemas enforce the pattern `^(team|organization)::\d+$`.** `[schema]`
 
 Gating model `[behavior]`:
 
@@ -300,7 +300,7 @@ Gating model `[behavior]`:
 
 **Params** `[schema]`: none.
 
-**Behavior** `[behavior]`: returns `handle`, `email`, and `plans[]`, each plan carrying `name`, `seat` (`Full` / `Dev` / `View`), `tier`, `seat_type`, and `key` (the `team::<id>` / `organization::<id>` **planKey** consumed by `create_new_file` and `generate_diagram`). Call it first to resolve a `planKey`, and to diagnose permission errors on other tools (confirm the right user is logged in and which seat they hold). The response also returns a `rate-limits-access.md` MCP resource link — corroborating that **MCP resources** (not a `get_make_resources` tool) are how this server exposes docs/Make context. `[schema]`
+**Behavior** `[behavior]`: returns `handle`, `email`, and `plans[]`, each plan carrying `name`, `seat` (`Full` / `Dev` / `View`), `tier`, `seat_type`, and `key` (the `team::<id>` / `organization::<id>` **planKey** consumed by `create_new_file` and `generate_diagram`). Call it first to resolve a `planKey`, and to diagnose permission errors on other tools — the live schema description states exactly this purpose: *"If you are experiencing permission issues with other tools, you can use this tool to get information about who is authenticated."* `[schema]` The server also exposes docs/Make context through the **MCP resources** primitive (not a `get_make_resources` tool) — see the Make myth above. `[behavior]`
 
 ---
 

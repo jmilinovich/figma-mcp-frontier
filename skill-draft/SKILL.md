@@ -80,8 +80,10 @@ appends it in the same call**.
 - **≤ ~8–10 logical operations per call.** (Convention, not a measured limit — `E0x` in the
   experiment matrix binary-searches the true ceiling.) Smaller calls = more deterministic, cheaper
   to validate, cheaper to retry.
-- **The `code` field is hard-capped at 50,000 chars** (live schema `maxLength`). Tool **output** is
-  effectively capped around **~20 KB** — exceeding it truncates/fails the call.
+- **The `code` field is hard-capped at 50,000 chars** (live schema `maxLength` — verified).
+  Tool **output** (what your script returns) is effectively capped around **~20 KB** — exceeding it
+  fails the call (convention, **not** a measured limit; the read-side analog is the 25,000-token
+  per-tool cap, which *fails the call outright rather than truncating* — see `harness/`).
 - **Return only what the next step needs: node IDs, names, counts.** End each script with a compact
   `console.log(JSON.stringify({ root: frame.id, children: [...] }))`. **Never** serialize and return
   whole node trees or `exportAsync` blobs — that blows the output cap and wastes context.
@@ -104,10 +106,12 @@ README method note.) One in-flight write at a time, period.
     `Content-Type`; with `nodeId` (count=1) it sets the image as a fill on that node, without it
     creates frames. PNG/JPG/GIF/WebP, **max 10 MB**. **SVG is NOT supported here** — for SVG call
     `figma.createNodeFromSvg(...)` inside `use_figma`.
-  - **`generate_figma_design`** captures a web page/HTML into the file; the resulting `imageHash` can
-    then be reused as a fill via `use_figma`. Note it captures **flat dead raster** — no component
-    instances, no variant props, no variable bindings (staff-acknowledged #1 write-frontier gap), so
-    use it as a layout reference, not as the deliverable.
+  - **`generate_figma_design`** captures a web page/HTML into an *existing design file* (two-phase:
+    call with `fileKey` and no `captureId` → get a capture script + `captureId`, then poll that
+    `captureId` every 5s up to 10 times until `completed`). It lands a **flat dead raster** node — no
+    component instances, no variant props, no variable bindings (staff-acknowledged #1 write-frontier
+    gap). Per the tool's own contract, use it as a **layout reference**, then rebuild from real
+    components with `use_figma` and **delete the raster** — do not treat its output as the deliverable.
 
 ### 7. Validate every call — self-check, don't trust the return string
 A clean tool return means the JS didn't throw, **not** that the canvas looks right. After each

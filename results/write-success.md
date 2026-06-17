@@ -6,7 +6,7 @@ Each rung of the controlled complexity ladder, built into draft `PSSvW47Ry1XDSAV
 |---|---|---|---:|---|---|
 | 1 | Single Primary Button (auto-layout frame + Inter Medium text) | ✅ PASS | 1 / 0 | frame `1:2`, text `1:3` | Clean first-call success. `createAutoLayout` + text-child HUG after append worked as the skill prescribes. |
 | 2 | Button with full variant matrix (size × variant × state via `combineAsVariants`) | ⏳ queued | — | — | Tests variant-set creation + node-count behavior |
-| 3 | Tokenized Card (real variable collection → bound fills/spacing) | ⏳ queued | — | — | **Headline test:** does binding variables make `get_design_context` emit token refs instead of hardcoded hex? (the #1 community quality complaint) |
+| 3 | Tokenized Card (variable collection `2:2` → bound fills/stroke/radius/padding/gap + text colors) | ✅ PASS | 2 / 0 | coll `2:2`, card `3:2`, title `3:3`, body `3:4` | Built in 2 clean calls (variables first, then the bound Card). **Headline payoff → results/read-fidelity-tokens.md:** binding code-synced variables makes `get_design_context` emit `var(--token,fallback)` refs instead of hardcoded hex. |
 | 4 | Multi-section screen | ⏳ queued | — | — | Big enough to test the `get_design_context` size-downgrade + `forceCode` (E01) |
 
 ## Observations so far
