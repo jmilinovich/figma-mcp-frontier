@@ -59,7 +59,19 @@ export default function Button({ className, variant = "Primary" }: ButtonProps) 
 - **Refines a research worry:** the reported "snippets vanish / base-variant-only" problem is specific to the **Code Connect** path (`get_code_connect_map` on a component that became a set), **not** raw `get_design_context`. The two paths must not be conflated. (Code Connect on a set = separate open test.)
 - **Internal consistency check passed:** the bound radius surfaced as `var(--radius-lg,12px)`; the *unbound* secondary border stayed hardcoded `#e3e3e8` — exactly the token rule above. Bind it → token; don't → literal.
 
+## Multi-mode `get_variable_defs` — RESOLVED (live 2026-06-17)
+
+Added a second mode ("Dark") to the `tokens` collection with distinct values, then read the Card three ways:
+
+| Node mode | `get_variable_defs(3:2)` returned |
+|---|---|
+| default ("Mode 1" / light) | `color-surface:#ffffff, color-foreground:#0a0a0b, color-muted:#71717a, color-border:#e4e4e7` |
+| explicit **Dark** (`setExplicitVariableModeForCollection`) | `color-surface:#0a0a0d, color-foreground:#fafafa, color-muted:#a1a1ab, color-border:#29292e` |
+
+- **Verdict (high confidence):** `get_variable_defs` **follows the node's active mode** but returns **only that one mode's resolved values** — never the multi-mode definition, never aliases. The "Dark" mode's existence is completely invisible in a light-mode read and vice-versa.
+- **Asymmetry confirmed:** you can *write* multi-mode collections fine (Dark mode added cleanly on Pro tier — multi-mode is **not** gated out on Pro), but you cannot *read* the theming through this tool. To capture both modes you must read the node twice under two explicit modes, or drop to the REST API for the full multi-mode/alias definition.
+- Refines the research's blunter "default-mode-only" claim → it's **single-resolved-mode, follows the node.**
+
 ## Open follow-ups
-- Multi-mode (light/dark) `get_variable_defs` — does it collapse to default mode? (needs a 2-mode collection)
 - Does **Code Connect** (`get_code_connect_map` after `add_code_connect_map`) upgrade output to a real component import — and does the variant-set brittleness reproduce there? (needs a mapping)
 - The ~350× gap between measured clean-design cost (Card ~452 tok) and the cited "~162K-token card" — strong evidence those blowups are about **node density / imported cruft / inline rasters**, not semantic complexity. Reproduce on a dense imported design (rung 4 / shadcn corpus).

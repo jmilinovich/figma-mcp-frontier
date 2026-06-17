@@ -36,7 +36,7 @@ Atomicity + the `figma-use` skill make the write path reliable in practice. → 
 1. **Rung 4 — reproduce the token-cap blowup** on a dense/imported design; characterize the real 25k-cap threshold and settle `forceCode` at scale (E01 definitive). Tests the ~350× gap directly.
 2. **shadcn corpus read-fidelity** — duplicate the public shadcn Figma kit into the account, run `get_design_context` vs the real shadcn code as answer-key, score with the rubric.
 3. **Code Connect path** — `add_code_connect_map` then `get_code_connect_map`; test whether variant-set brittleness reproduces there (vs the clean raw `get_design_context`).
-4. **Multi-mode `get_variable_defs`** — does it collapse to default mode? (2-mode collection)
+4. ✅ **DONE — Multi-mode `get_variable_defs`** — follows the node's active mode, returns one mode's resolved values only; multi-mode is invisible (write multi-mode works on Pro; read doesn't surface it). → `results/read-fidelity-tokens.md`
 5. Tighten `skill-draft/SKILL.md` with what rungs 1–3 proved (variables-with-code-syntax first; bind everything).
 
 ## Caveats / honesty
