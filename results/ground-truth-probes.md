@@ -33,3 +33,19 @@ Each probe: question · method (tool + exact params) · result · verdict · con
 - **`get_metadata` carries an imperative instruction** ("After you call this tool, you MUST call get_design_context …") — confirms the agentic-ergonomics finding that the tool tries to drive the agent's next step. No "first-design-only" pathology observed on a single node; the multi-design-page pathology is a separate test. **PARTIAL.**
 - **`get_design_context` bundles an inline screenshot by default**; `excludeScreenshot=true` removes it (confirmed — no image block in the excludeScreenshot runs). Token-relevant: see token-cost.md.
 - **`get_screenshot` defaults to a short-lived URL + curl, zero base64** (`enableBase64Response` defaults false). Confirmed.
+
+---
+
+## Code Connect — the whole cluster is Org/Enterprise-gated → **WALL (RESOLVED for this account)**
+
+- **Method:** `add_code_connect_map(node 4:8 → "Button" @ src/components/ui/button.tsx, label React)` and `get_code_connect_map(node 8:2)`.
+- **Result:** **both** returned: *"You need a Dev seat on an Organization or Enterprise plan to use Code Connect."* JM Personal is Pro tier / Full seat — which does **not** qualify.
+- **Verdict (high confidence):** the **entire Code Connect path — read AND write — is gated to an Org/Enterprise Dev seat.** It is wholly unavailable on Pro/Full. This refines the capability map: `get_code_connect_map` being "shared" with desktop does **not** mean usable — it's seat-gated independent of server.
+- **Consequence:** the "does Code Connect upgrade `get_design_context` to a real codebase import?" experiment is **not runnable on this account** — a documented wall (consistent with treating seat/headless limits as walls, not obstacles to defeat). Resolving it needs an Org/Enterprise Dev seat.
+
+## `get_design_context` on an INSTANCE → component composition even without Code Connect
+
+- **Method:** created an instance (`8:2`) of the Primary Button component, then `get_design_context(8:2, excludeScreenshot=true)`.
+- **Result:** it returned a **local `Button` component definition** (with `variant?: "Primary"` prop) **and** an `export default function Button1()` that renders `<Button className=… />` — i.e. it factored the instance into a reusable component + a usage site, rather than flattening to a `<div>`.
+- **Verdict:** even **without** Code Connect, `get_design_context` is instance-aware and emits component composition. What Code Connect *would* add is replacing that locally-synthesized `Button` with an import of your **real** codebase component — the missing, seat-gated upgrade. Token binding stayed consistent (bound `rounded-[var(--radius-lg,12px)]`; unbound `bg-[#17171c]`).
+- **Confidence:** High (live behavior).
