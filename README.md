@@ -12,12 +12,21 @@ The official Figma MCP is three launches wearing one name, and almost every publ
 
 ## Deliverables
 
+> **Latest run:** see [`STATUS.md`](STATUS.md) for what's proven so far and where to pick up.
+
 | # | Artifact | Status |
 |---|----------|--------|
-| 1 | **Corrected capability map** — all 19 tools, real (often undocumented) parameter behavior, limits, failure modes | 🚧 building |
-| 2 | **Reproducible benchmark harness** — read fidelity, per-tool token cost, write success-rate over a full build | 🚧 building |
-| 3 | **Frontier demo** — one thing the docs call aspirational (codebase → tokenized design system, or capture→relink loop) | ⏳ queued |
-| 4 | **Reliability skill** — make the non-deterministic write pipeline repeatable (atomicity + skill-gating + per-call validation) | ⏳ queued |
+| 1 | **Corrected capability map** — all 19 tools, real (often undocumented) parameter behavior, limits, failure modes | ✅ v1 → [`docs/capability-map.md`](docs/capability-map.md) |
+| 2 | **Reproducible benchmark harness + live results** — read fidelity, per-tool token cost, write success-rate | 🟢 first results landed → [`results/`](results/) |
+| 3 | **Frontier demo** — one thing the docs call aspirational (codebase → tokenized design system, or capture→relink loop) | ⏳ next |
+| 4 | **Reliability skill** — make the non-deterministic write pipeline repeatable (atomicity + skill-gating + per-call validation) | 🚧 draft → [`skill-draft/SKILL.md`](skill-draft/SKILL.md) |
+
+### Findings so far (live build 2026-06-17)
+- **The "MCP hardcodes tokens" complaint is misattributed** — `get_design_context` emits `var(--token,fallback)` refs iff the design binds code-synced variables (controlled A/B). [`results/read-fidelity-tokens.md`](results/read-fidelity-tokens.md)
+- **Component sets read back as one parametric typed component**, not snippets. (same file)
+- **`clientFrameworks`/`clientLanguages` are logging-only** — output is always React+Tailwind. [`results/ground-truth-probes.md`](results/ground-truth-probes.md)
+- **Per-tool token cost, measured:** `get_metadata` ~98 · `get_screenshot`(URL) ~120 · `get_design_context` ~368 tok (+inline screenshot). [`results/token-cost.md`](results/token-cost.md)
+- **3/4 write-ladder rungs built clean, zero retries** (Button, variant set, token-bound Card). [`results/write-success.md`](results/write-success.md)
 
 ## Verified grounding facts (the corrections)
 

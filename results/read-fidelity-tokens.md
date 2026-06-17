@@ -38,6 +38,28 @@ export default function Card() {
 ```
 - Keys are the **WEB code-syntax** strings; values are **resolved** (not aliases). Single-mode here, so the known "default-mode-only / no multi-mode" limitation is not exercised — that's a separate multi-mode test (open).
 
+## Bonus headline: `get_design_context` on a COMPONENT_SET → a parametric typed component
+
+Reading the rung-2 Button **component set** (`node 4:8`, variant property Primary/Secondary/Ghost) did **not** return three separate snippets, nor only the default variant. It returned a single **parametric React component with a TypeScript prop union derived from the variant property**:
+
+```tsx
+type ButtonProps = { className?: string; variant?: "Primary" | "Secondary" | "Ghost" };
+export default function Button({ className, variant = "Primary" }: ButtonProps) {
+  const isGhost = variant === "Ghost";
+  const isSecondary = variant === "Secondary";
+  return (
+    <div className={className || `… rounded-[var(--radius-lg,12px)] ${isGhost ? "" : isSecondary ? "bg-white border border-[#e3e3e8] border-solid" : "bg-[#17171c]"}`} …>
+      <p className={`… ${["Secondary","Ghost"].includes(variant) ? "text-[#17171c]" : "text-[#fafafa]"}`}>Button</p>
+    </div>
+  );
+}
+```
+
+- **Verdict (high confidence):** raw `get_design_context` handles variant sets **excellently** — it synthesizes the prop type, defaults the variant, and writes per-variant conditional styling. This is the highest-fidelity read behavior observed.
+- **Refines a research worry:** the reported "snippets vanish / base-variant-only" problem is specific to the **Code Connect** path (`get_code_connect_map` on a component that became a set), **not** raw `get_design_context`. The two paths must not be conflated. (Code Connect on a set = separate open test.)
+- **Internal consistency check passed:** the bound radius surfaced as `var(--radius-lg,12px)`; the *unbound* secondary border stayed hardcoded `#e3e3e8` — exactly the token rule above. Bind it → token; don't → literal.
+
 ## Open follow-ups
 - Multi-mode (light/dark) `get_variable_defs` — does it collapse to default mode? (needs a 2-mode collection)
-- Does Code Connect (`get_code_connect_map`) further upgrade this to real component imports rather than a raw `<div>`? (needs a mapped component)
+- Does **Code Connect** (`get_code_connect_map` after `add_code_connect_map`) upgrade output to a real component import — and does the variant-set brittleness reproduce there? (needs a mapping)
+- The ~350× gap between measured clean-design cost (Card ~452 tok) and the cited "~162K-token card" — strong evidence those blowups are about **node density / imported cruft / inline rasters**, not semantic complexity. Reproduce on a dense imported design (rung 4 / shadcn corpus).
